@@ -1,5 +1,8 @@
 # Deployments
 
+## Live app
+- **Frontend (Vercel):** https://ajo-nu.vercel.app/ — auto-deploys on every push to `main`. Root dir `frontend/`.
+
 ## Ethereum Sepolia (chainId 11155111) — 2026-07-06
 
 | Contract | Address | Etherscan |

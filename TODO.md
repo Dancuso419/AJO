@@ -88,7 +88,8 @@ Style: **clean light fintech** (user pick). SDK: **`@zama-fhe/react-sdk` v3 hook
 - [x] Generated `frontend/contracts/{ConfidentialAjo,AjoToken}.ts` from Sepolia deploy artifacts (address+abi+block); removed FHECounter demo
 - [x] `hooks/useAjo.ts` — reads (groupCount/groups/payoutOrder/history handles), writes (createGroup/joinGroup/mint/approve(setOperator)/contribute w/ euint64 encrypt + 15M gas), decrypt (useUserDecrypt gated by useIsAllowed/useAllow)
 - [x] `app/page.tsx` — Landing → Home (count + create/open) → CreateGroup form → GroupDashboard (config, members+paid rows, **locked history + Reveal**, actions)
-- [ ] **Boot dev server + fix any compile/type errors** ← next
+- [x] **Production build passes** (`next build` exit 0). Fixes: pinned Zama SDK to exact `3.0.0` (`^3.0.0` pulled breaking 3.2.0 that dropped `RelayerWeb`/`SepoliaConfig` from root); `.npmrc` legacy-peer-deps; scaffold.config public-RPC fallback (no Alchemy key needed); euint64 decrypt→bigint cast; setOperator `until` as number (uint48); wagmiSigner address narrow. Pushed `b40d072`.
+- [x] Deployed to **Vercel**: https://ajo-nu.vercel.app/ (Root dir `frontend`, auto-deploys on push) — live landing confirmed
 - [ ] Live test on Sepolia: create → join → mint → approve → contribute → payout; verify Reveal decrypts own history and another wallet cannot
 - [ ] Public vs private UI polish (lock chip is in; refine states)
 
