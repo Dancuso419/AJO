@@ -5,12 +5,12 @@ import { useAllow, useEncrypt, useIsAllowed, useUserDecrypt } from "@zama-fhe/re
 import { ZERO_HANDLE } from "@zama-fhe/sdk";
 import { bytesToHex } from "viem";
 import { useAccount, useChainId, useReadContract, useWriteContract } from "wagmi";
-import { ConfidentialAjo } from "~~/contracts/ConfidentialAjo";
 import { AjoToken } from "~~/contracts/AjoToken";
+import { ConfidentialAjo } from "~~/contracts/ConfidentialAjo";
 import { deploymentFor } from "~~/utils/contract";
 
-// Operator approval validity (uint48 unix seconds) — year 2100.
-const OPERATOR_UNTIL = 4102444800n;
+// Operator approval validity (uint48 unix seconds) — year 2100. uint48 → number in viem.
+const OPERATOR_UNTIL = 4102444800;
 // FHE ops are gas-heavy; keep below Sepolia's block gas limit.
 const FHE_GAS = 15_000_000n;
 
@@ -126,12 +126,12 @@ export const useAjo = (groupId: bigint | undefined) => {
   const decryptedContrib = useMemo(() => {
     if (!contribHandle) return undefined;
     if (contribHandle === ZERO_HANDLE) return 0n;
-    return decrypt.data?.[contribHandle];
+    return decrypt.data?.[contribHandle] as bigint | undefined;
   }, [contribHandle, decrypt.data]);
   const decryptedPayout = useMemo(() => {
     if (!payoutHandle) return undefined;
     if (payoutHandle === ZERO_HANDLE) return 0n;
-    return decrypt.data?.[payoutHandle];
+    return decrypt.data?.[payoutHandle] as bigint | undefined;
   }, [payoutHandle, decrypt.data]);
 
   const isRevealed = decryptedContrib !== undefined || decryptedPayout !== undefined;

@@ -38,7 +38,7 @@ export class WagmiSigner implements GenericSigner {
     if (!account?.address) {
       throw new TypeError("Invalid address");
     }
-    return account.address;
+    return account.address as `0x${string}`;
   }
 
   async signTypedData(typedData: EIP712TypedData): Promise<Hex> {
