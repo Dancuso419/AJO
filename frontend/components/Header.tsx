@@ -5,23 +5,17 @@ import Link from "next/link";
 import { RainbowKitCustomConnectButton } from "~~/components/helper";
 
 /**
- * AJO top bar — wordmark left, wallet right. Charcoal, persistent.
+ * AJO floating pill nav — just the wordmark + wallet, detached and centered.
  */
 export const Header = () => {
   return (
-    <header className="sticky top-0 z-20 border-b border-[var(--ajo-line)] bg-[var(--ajo-bg)]/80 backdrop-blur-md">
-      <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-5 sm:px-6">
-        <Link href="/" className="group flex items-center gap-2.5">
-          <span
-            className="grid h-7 w-7 rotate-45 place-items-center rounded-[7px] border border-[var(--ajo-gold-line)] transition-transform duration-300 group-hover:rotate-[135deg]"
-            style={{ background: "var(--ajo-gold-soft)" }}
-          >
-            <span className="-rotate-45 text-[13px] font-black text-[var(--ajo-gold-bright)] transition-transform duration-300 group-hover:rotate-[-135deg]">
-              A
-            </span>
-          </span>
-          <span className="text-[17px] font-bold tracking-tight text-[var(--ajo-ink)]">AJO</span>
-          <span className="ml-1 hidden text-xs text-[var(--ajo-faint)] sm:inline">confidential savings</span>
+    <header className="pointer-events-none fixed inset-x-0 top-4 z-30 flex justify-center px-4">
+      <div className="pointer-events-auto flex items-center gap-3 rounded-full border border-[var(--ajo-line-strong)] bg-[var(--ajo-bg)]/70 py-2 pl-5 pr-2 shadow-[0_14px_44px_-18px_rgba(0,0,0,0.85)] backdrop-blur-xl">
+        <Link
+          href="/"
+          className="text-[15px] font-bold tracking-tight text-[var(--ajo-ink)] transition-colors hover:text-[var(--ajo-gold-bright)]"
+        >
+          AJO
         </Link>
         <RainbowKitCustomConnectButton />
       </div>

@@ -20,7 +20,7 @@ export default function Home() {
   if (!isConnected) return <Landing />;
 
   return (
-    <main className="mx-auto max-w-3xl px-5 py-10 sm:px-6">
+    <main className="mx-auto max-w-3xl px-5 pb-16 pt-28 sm:px-6">
       {groupId !== undefined ? (
         <GroupDashboard groupId={groupId} onBack={() => setGroupId(undefined)} />
       ) : view === "create" ? (
@@ -41,26 +41,185 @@ export default function Home() {
 /* ---------------------------------------------------------------- Landing */
 
 function Landing() {
+  const scrollToHow = () => document.getElementById("how")?.scrollIntoView({ behavior: "smooth" });
   return (
-    <main className="relative mx-auto flex min-h-[78vh] max-w-3xl flex-col justify-center px-5 sm:px-6">
-      <CipherBanner />
-      <p className="ajo-mono mb-5 text-xs tracking-[0.3em] text-[var(--ajo-gold)]">
-        ESUSU · SUSU · CHAMA · TANDA · HUI
-      </p>
-      <h1 className="max-w-2xl text-5xl font-bold leading-[0.98] tracking-tight text-[var(--ajo-ink)] sm:text-6xl">
-        The savings circle,
-        <br />
-        <span className="text-[var(--ajo-gold-bright)]">sealed by cryptography.</span>
-      </h1>
-      <p className="mt-6 max-w-lg text-lg leading-relaxed text-[var(--ajo-muted)]">
-        Everyone pays in, one member takes the pot each round. Enforced on-chain so no one can cheat — and every amount
-        stays encrypted, so only you can ever see your own.
-      </p>
-      <div className="mt-9 flex items-center gap-4">
-        <RainbowKitCustomConnectButton />
-        <span className="ajo-mono text-xs text-[var(--ajo-faint)]">on Ethereum Sepolia</span>
+    <div className="mx-auto max-w-5xl px-5 sm:px-6">
+      {/* Hero */}
+      <section className="relative flex min-h-[92vh] flex-col justify-center overflow-hidden py-24">
+        <CipherBanner />
+        <p className="ajo-mono mb-6 text-xs tracking-[0.3em] text-[var(--ajo-gold)]">
+          ESUSU · SUSU · CHAMA · TANDA · HUI · PALUWAGAN
+        </p>
+        <h1 className="max-w-3xl text-balance text-5xl font-bold leading-[0.98] tracking-tight text-[var(--ajo-ink)] sm:text-7xl">
+          The savings circle, <span className="text-[var(--ajo-gold-bright)]">sealed by cryptography.</span>
+        </h1>
+        <p className="mt-7 max-w-xl text-lg leading-relaxed text-[var(--ajo-muted)]">
+          For centuries, communities have saved together: everyone pays in, one person takes the pot, rotating until all
+          have had their turn. AJO puts that on-chain — so no one can cheat — while every amount stays{" "}
+          <span className="text-[var(--ajo-ink)]">encrypted end to end.</span>
+        </p>
+        <div className="mt-10 flex flex-wrap items-center gap-4">
+          <RainbowKitCustomConnectButton />
+          <button className="ajo-btn ajo-btn-ghost" onClick={scrollToHow}>
+            How it works ↓
+          </button>
+          <span className="ajo-mono text-xs text-[var(--ajo-faint)]">live on Sepolia testnet</span>
+        </div>
+      </section>
+
+      {/* What it is */}
+      <section className="border-t border-[var(--ajo-line)] py-20">
+        <div className="grid gap-10 sm:grid-cols-[0.9fr_1.1fr] sm:gap-16">
+          <h2 className="text-3xl font-bold leading-tight tracking-tight text-[var(--ajo-ink)]">
+            A rotating savings club,
+            <br />
+            used by <span className="text-[var(--ajo-gold-bright)]">a billion people.</span>
+          </h2>
+          <p className="max-w-lg self-center text-lg leading-relaxed text-[var(--ajo-muted)]">
+            Known as ajo or esusu in West Africa, susu in Ghana, chama in Kenya, tanda in Mexico, hui in China. A small
+            group agrees a fixed amount and a rotation. Each round everyone contributes; one member receives the entire
+            pool. It’s trust, structure, and discipline — powered until now by a human collector.
+          </p>
+        </div>
+      </section>
+
+      {/* Two problems AJO fixes */}
+      <section className="border-t border-[var(--ajo-line)] py-20">
+        <h2 className="mb-10 text-3xl font-bold tracking-tight text-[var(--ajo-ink)]">The two problems we fix</h2>
+        <div className="grid gap-5 sm:grid-cols-2">
+          <ProblemCard
+            tag="Trust"
+            title="No collector can run off with the pot."
+            body="Contributions and payouts are enforced by the contract. Nobody under-reports what you paid, skips a payout, or absconds with the fund. The rules are the code."
+          />
+          <ProblemCard
+            tag="Privacy"
+            title="The group never sees your numbers."
+            body="Every amount is encrypted with Zama’s FHE. Members see that you paid — a public checkmark — but never how much. Only your wallet’s signature can reveal your own history."
+            gold
+          />
+        </div>
+      </section>
+
+      {/* How it works */}
+      <section id="how" className="scroll-mt-24 border-t border-[var(--ajo-line)] py-20">
+        <h2 className="mb-12 text-3xl font-bold tracking-tight text-[var(--ajo-ink)]">How it works</h2>
+        <div className="grid gap-10 sm:grid-cols-3">
+          <Step
+            n="01"
+            title="Create a circle"
+            body="Invite members by wallet address, set the stake per round and the rotation. Anyone in the list can join until the circle is full."
+          />
+          <Step
+            n="02"
+            title="Everyone contributes"
+            body="Each round, members pay their stake in confidential tokens. Your amount is encrypted in your browser before it ever touches the chain."
+          />
+          <Step
+            n="03"
+            title="The pot rotates"
+            body="Once all have paid, the round’s recipient automatically receives the pooled amount — encrypted, decryptable only by them. Repeat until everyone’s been paid once."
+          />
+        </div>
+      </section>
+
+      {/* Privacy payoff */}
+      <section className="border-t border-[var(--ajo-line)] py-20">
+        <div className="ajo-card ajo-card-active grid items-center gap-10 p-8 sm:grid-cols-[1.1fr_0.9fr] sm:p-12">
+          <div>
+            <h2 className="text-3xl font-bold leading-tight tracking-tight text-[var(--ajo-ink)]">
+              Only you hold <span className="text-[var(--ajo-gold-bright)]">the key.</span>
+            </h2>
+            <p className="mt-5 max-w-md text-lg leading-relaxed text-[var(--ajo-muted)]">
+              On a normal blockchain, every amount is public forever. AJO keeps balances and payouts as ciphertext on
+              Ethereum itself. Tap decrypt, sign once, and your numbers resolve — for your eyes only. Every other wallet
+              gets nothing.
+            </p>
+          </div>
+          <RevealDemo />
+        </div>
+      </section>
+
+      {/* Closing */}
+      <section className="border-t border-[var(--ajo-line)] py-20 text-center">
+        <h2 className="mx-auto max-w-2xl text-balance text-4xl font-bold tracking-tight text-[var(--ajo-ink)]">
+          Save together. Keep your numbers to yourself.
+        </h2>
+        <div className="mt-8 flex justify-center">
+          <RainbowKitCustomConnectButton />
+        </div>
+        <div className="ajo-mono mt-8 flex flex-wrap justify-center gap-x-6 gap-y-2 text-xs text-[var(--ajo-faint)]">
+          <a
+            className="transition-colors hover:text-[var(--ajo-gold)]"
+            href="https://sepolia.etherscan.io/address/0x357223395518B2E1639fDb6D065Dd0a8847b9C5E#code"
+            target="_blank"
+            rel="noreferrer"
+          >
+            verified contract ↗
+          </a>
+          <a
+            className="transition-colors hover:text-[var(--ajo-gold)]"
+            href="https://github.com/Dancuso419/AJO"
+            target="_blank"
+            rel="noreferrer"
+          >
+            source on github ↗
+          </a>
+          <span>built on Zama FHEVM</span>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function ProblemCard({ tag, title, body, gold }: { tag: string; title: string; body: string; gold?: boolean }) {
+  return (
+    <div className={`ajo-card p-7 ${gold ? "ajo-card-active" : ""}`}>
+      <span className={`ajo-chip ${gold ? "ajo-chip-gold" : ""}`}>{tag}</span>
+      <h3 className="mt-4 text-xl font-semibold text-[var(--ajo-ink)]">{title}</h3>
+      <p className="mt-3 leading-relaxed text-[var(--ajo-muted)]">{body}</p>
+    </div>
+  );
+}
+
+function Step({ n, title, body }: { n: string; title: string; body: string }) {
+  return (
+    <div>
+      <div className="ajo-mono text-4xl font-bold text-[var(--ajo-gold)]">{n}</div>
+      <div className="mt-3 h-px w-10 bg-[var(--ajo-gold-line)]" />
+      <h3 className="mt-4 text-lg font-semibold text-[var(--ajo-ink)]">{title}</h3>
+      <p className="mt-2 leading-relaxed text-[var(--ajo-muted)]">{body}</p>
+    </div>
+  );
+}
+
+// Mini self-running demo of the ciphertext → number reveal.
+function RevealDemo() {
+  const [revealed, setRevealed] = useState(false);
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setRevealed(true);
+      return;
+    }
+    const loop = setInterval(() => setRevealed(r => !r), 2600);
+    return () => clearInterval(loop);
+  }, []);
+  return (
+    <div className="rounded-2xl border border-[var(--ajo-line)] bg-[var(--ajo-bg-2)] p-6">
+      <div className="ajo-mono text-xs uppercase tracking-[0.15em] text-[var(--ajo-faint)]">Your contributed total</div>
+      <div className="mt-3 text-3xl">
+        {revealed ? (
+          <span className="ajo-mono ajo-rise font-bold text-[var(--ajo-ink)]">
+            300 <span className="text-base font-normal text-[var(--ajo-muted)]">AJOT</span>
+          </span>
+        ) : (
+          <Scramble />
+        )}
       </div>
-    </main>
+      <div className="mt-4 text-xs text-[var(--ajo-faint)]">
+        {revealed ? "decrypted · visible only to you" : "encrypted on-chain"}
+      </div>
+    </div>
   );
 }
 
@@ -71,18 +230,22 @@ function CipherBanner() {
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const chars = "0123456789ABCDEF◆▚▞∎·×";
     const make = () =>
-      Array.from({ length: 6 }, () =>
-        Array.from({ length: 46 }, () => chars[Math.floor(Math.random() * chars.length)]).join(""),
+      Array.from({ length: 10 }, () =>
+        Array.from({ length: 40 }, () => chars[Math.floor(Math.random() * chars.length)]).join(""),
       );
     setRows(make());
     if (reduce) return;
-    const id = setInterval(() => setRows(make()), 140);
+    const id = setInterval(() => setRows(make()), 150);
     return () => clearInterval(id);
   }, []);
   return (
     <div
       aria-hidden
-      className="ajo-mono pointer-events-none absolute right-0 top-6 hidden select-none text-[11px] leading-5 text-[var(--ajo-gold)] opacity-[0.06] sm:block"
+      className="ajo-mono pointer-events-none absolute -right-10 top-0 hidden select-none text-[11px] leading-5 text-[var(--ajo-gold)] opacity-[0.05] sm:block"
+      style={{
+        maskImage: "linear-gradient(to left, black, transparent)",
+        WebkitMaskImage: "linear-gradient(to left, black, transparent)",
+      }}
     >
       {rows.map((r, i) => (
         <div key={i}>{r}</div>
