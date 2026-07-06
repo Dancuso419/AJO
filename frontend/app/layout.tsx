@@ -16,7 +16,7 @@ const DappWrapper = ({ children }: { children: React.ReactNode }) => {
         <link href="https://api.fontshare.com/v2/css?f[]=telegraf@400,500,700&display=swap" rel="stylesheet" />
       </head>
       <body suppressHydrationWarning>
-        <ThemeProvider forcedTheme="light" enableSystem={false}>
+        <ThemeProvider forcedTheme="dark" enableSystem={false}>
           <DappWrapperWithProviders>{children}</DappWrapperWithProviders>
         </ThemeProvider>
       </body>

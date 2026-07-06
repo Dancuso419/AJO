@@ -136,3 +136,198 @@
 .link:hover {
   opacity: 80%;
 }
+
+/* ============================================================
+   AJO — charcoal + dark-gold design system
+   ============================================================ */
+:root {
+  --ajo-bg: #121110;
+  --ajo-bg-2: #0d0c0b;
+  --ajo-surface: #1a1815;
+  --ajo-surface-2: #232019;
+  --ajo-line: #322d23;
+  --ajo-line-strong: #453d2d;
+  --ajo-ink: #f3eee1;
+  --ajo-muted: #aba08b;
+  --ajo-faint: #756d5c;
+  --ajo-gold: #e8b02e;
+  --ajo-gold-bright: #ffc63d;
+  --ajo-gold-deep: #c8922a;
+  --ajo-gold-soft: rgba(232, 176, 46, 0.13);
+  --ajo-gold-line: rgba(232, 176, 46, 0.32);
+  --ajo-danger: #e0674c;
+  --ajo-mono: "SF Mono", ui-monospace, "JetBrains Mono", "Roboto Mono", Menlo, Consolas, monospace;
+}
+
+/* Charcoal body regardless of daisyUI theme */
+:root,
+[data-theme] {
+  background: var(--ajo-bg);
+}
+body {
+  background:
+    radial-gradient(1100px 620px at 78% -8%, rgba(232, 176, 46, 0.08), transparent 60%),
+    radial-gradient(900px 500px at 0% 100%, rgba(232, 176, 46, 0.04), transparent 55%), var(--ajo-bg);
+  color: var(--ajo-ink);
+}
+::selection {
+  background: var(--ajo-gold);
+  color: #141310;
+}
+
+/* Surfaces */
+.ajo-card {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.015), transparent), var(--ajo-surface);
+  border: 1px solid var(--ajo-line);
+  border-radius: 18px;
+}
+.ajo-card-active {
+  border-color: var(--ajo-gold-line);
+  box-shadow:
+    0 0 0 1px rgba(232, 176, 46, 0.12),
+    0 24px 60px -32px rgba(232, 176, 46, 0.35);
+}
+.ajo-hair {
+  border-color: var(--ajo-line);
+}
+
+/* Buttons — full state set */
+.ajo-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 12px;
+  padding: 0.68rem 1.15rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  transition:
+    background 160ms cubic-bezier(0.22, 1, 0.36, 1),
+    color 160ms,
+    border-color 160ms,
+    transform 120ms,
+    box-shadow 160ms;
+}
+.ajo-btn:active {
+  transform: translateY(1px);
+}
+.ajo-btn:disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+.ajo-btn:focus-visible {
+  outline: 2px solid var(--ajo-gold);
+  outline-offset: 2px;
+}
+.ajo-btn-gold {
+  background: var(--ajo-gold);
+  color: #171310;
+  box-shadow: 0 10px 30px -14px rgba(232, 176, 46, 0.7);
+}
+.ajo-btn-gold:hover {
+  background: var(--ajo-gold-bright);
+}
+.ajo-btn-ghost {
+  background: transparent;
+  color: var(--ajo-ink);
+  border: 1px solid var(--ajo-line-strong);
+}
+.ajo-btn-ghost:hover {
+  border-color: var(--ajo-gold-line);
+  background: var(--ajo-gold-soft);
+  color: var(--ajo-gold-bright);
+}
+
+/* Inputs */
+.ajo-input {
+  width: 100%;
+  background: var(--ajo-surface-2);
+  border: 1px solid var(--ajo-line);
+  border-radius: 12px;
+  padding: 0.6rem 0.8rem;
+  color: var(--ajo-ink);
+  font-size: 0.9rem;
+  transition:
+    border-color 150ms,
+    box-shadow 150ms;
+}
+.ajo-input::placeholder {
+  color: var(--ajo-faint);
+}
+.ajo-input:focus {
+  outline: none;
+  border-color: var(--ajo-gold-line);
+  box-shadow: 0 0 0 3px var(--ajo-gold-soft);
+}
+
+/* Chips */
+.ajo-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border-radius: 999px;
+  padding: 0.28rem 0.7rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border: 1px solid var(--ajo-line-strong);
+  color: var(--ajo-muted);
+}
+.ajo-chip-gold {
+  border-color: var(--ajo-gold-line);
+  color: var(--ajo-gold-bright);
+  background: var(--ajo-gold-soft);
+}
+
+.ajo-mono {
+  font-family: var(--ajo-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Signature: ciphertext scramble */
+@keyframes ajo-flicker {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+.ajo-cipher {
+  font-family: var(--ajo-mono);
+  color: var(--ajo-gold);
+  letter-spacing: 0.06em;
+  animation: ajo-flicker 1.6s ease-in-out infinite;
+}
+@keyframes ajo-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.ajo-rise {
+  animation: ajo-rise 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* The rotating-pot track node */
+.ajo-node {
+  transition:
+    background 200ms,
+    border-color 200ms,
+    box-shadow 200ms,
+    color 200ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ajo-cipher,
+  .ajo-rise {
+    animation: none !important;
+  }
+}

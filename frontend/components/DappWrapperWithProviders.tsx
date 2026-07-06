@@ -1,13 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { RainbowKitProvider, darkTheme, lightTheme } from "@rainbow-me/rainbowkit";
+import { useEffect, useMemo } from "react";
+import { RainbowKitProvider, darkTheme } from "@rainbow-me/rainbowkit";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ZamaProvider } from "@zama-fhe/react-sdk";
 import { IndexedDBStorage, RelayerWeb, SepoliaConfig, type ZamaSDKEvent } from "@zama-fhe/sdk";
 import { RelayerCleartext, hardhatCleartextConfig } from "@zama-fhe/sdk/cleartext";
 import { AppProgressBar as ProgressBar } from "next-nprogress-bar";
-import { useTheme } from "next-themes";
 import { Toaster } from "react-hot-toast";
 import { WagmiProvider, useChainId } from "wagmi";
 import { Header } from "~~/components/Header";
@@ -74,23 +73,15 @@ const ZamaRuntimeProvider = ({ children }: { children: React.ReactNode }) => {
 };
 
 export const DappWrapperWithProviders = ({ children }: { children: React.ReactNode }) => {
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme === "dark";
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
   return (
     <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
         <RainbowKitProvider
           avatar={BlockieAvatar}
-          theme={mounted ? (isDarkMode ? darkTheme() : lightTheme()) : lightTheme()}
+          theme={darkTheme({ accentColor: "#e8b02e", accentColorForeground: "#171310", borderRadius: "medium" })}
         >
           <ZamaRuntimeProvider>
-            <ProgressBar height="3px" color="#2299dd" />
+            <ProgressBar height="3px" color="#e8b02e" />
             <div className={`flex flex-col min-h-screen`}>
               <Header />
               <main className="relative flex flex-col flex-1">{children}</main>
