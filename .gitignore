@@ -1,0 +1,24 @@
+# Claude Code internal working files (memory, local settings) — not part of the project
+.claude/
+
+# Safety nets (sub-projects also ignore these)
+**/node_modules/
+**/.next/
+**/out/
+**/build/
+**/dist/
+**/artifacts/
+**/cache/
+**/types/
+
+# Env & secrets — never commit
+**/.env
+**/.env.local
+**/.env.*.local
+*.pem
+*.key
+
+# Logs & OS
+*.log
+.DS_Store
+Thumbs.db
