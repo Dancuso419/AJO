@@ -15,6 +15,33 @@ const base = {
   doneBtnText: "Got it",
 };
 
+// The home screen you land on right after connecting a wallet.
+const homeSteps: DriveStep[] = [
+  {
+    element: '[data-tour="home-create"]',
+    popover: {
+      title: "Start a savings circle",
+      description:
+        "Tap here to make a new group. You’ll pick who’s in it (by wallet address) and how much everyone chips in each round.",
+    },
+  },
+  {
+    element: '[data-tour="home-open"]',
+    popover: {
+      title: "Open a circle",
+      description: "Already part of one? Type its number, or tap a chip below, to jump into a circle you’re in.",
+    },
+  },
+  {
+    element: '[data-tour="help-fab"]',
+    popover: {
+      title: "Stuck? Tap the ?",
+      description:
+        "This help button is always here, on every screen. Tap it any time and I’ll walk you through what you’re looking at.",
+    },
+  },
+];
+
 // Plain-language, no-jargon explanations of every field in the "create" form.
 const createSteps: DriveStep[] = [
   {
@@ -101,6 +128,7 @@ function run(steps: DriveStep[]) {
   driver({ ...base, steps: available }).drive();
 }
 
+export const startHomeTour = () => run(homeSteps);
 export const startCreateTour = () => run(createSteps);
 export const startDashboardTour = () => run(dashboardSteps);
 
@@ -113,5 +141,6 @@ export function runTourOnce(key: string, steps: DriveStep[]) {
   // let the target elements mount/paint first
   setTimeout(() => run(steps), 450);
 }
+export const runHomeTourOnce = () => runTourOnce("home", homeSteps);
 export const runCreateTourOnce = () => runTourOnce("create", createSteps);
 export const runDashboardTourOnce = () => runTourOnce("dashboard", dashboardSteps);

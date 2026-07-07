@@ -6,21 +6,14 @@ import { RainbowKitCustomConnectButton } from "~~/components/helper/RainbowKitCu
 import { ConfidentialAjo } from "~~/contracts/ConfidentialAjo";
 import { useAjo } from "~~/hooks/useAjo";
 import { deploymentFor } from "~~/utils/contract";
-import { runCreateTourOnce, runDashboardTourOnce, startCreateTour, startDashboardTour } from "~~/utils/tour";
-
-function TourButton({ onClick }: { onClick: () => void }) {
-  return (
-    <button
-      className="ajo-mono inline-flex items-center gap-1.5 rounded-full border border-[var(--ajo-line-strong)] px-3 py-1.5 text-xs text-[var(--ajo-muted)] transition hover:border-[var(--ajo-gold-line)] hover:text-[var(--ajo-gold-bright)]"
-      onClick={onClick}
-    >
-      <span className="grid h-4 w-4 place-items-center rounded-full bg-[var(--ajo-gold-soft)] text-[10px] font-bold text-[var(--ajo-gold-bright)]">
-        ?
-      </span>
-      Guide me
-    </button>
-  );
-}
+import {
+  runCreateTourOnce,
+  runDashboardTourOnce,
+  runHomeTourOnce,
+  startCreateTour,
+  startDashboardTour,
+  startHomeTour,
+} from "~~/utils/tour";
 
 function short(a?: string) {
   return a ? `${a.slice(0, 6)}…${a.slice(-4)}` : "";
@@ -34,22 +27,43 @@ export default function Home() {
 
   if (!isConnected) return <Landing />;
 
+  const currentTour = groupId !== undefined ? startDashboardTour : view === "create" ? startCreateTour : startHomeTour;
+
   return (
-    <main className="mx-auto max-w-3xl px-5 pb-16 pt-28 sm:px-6">
-      {groupId !== undefined ? (
-        <GroupDashboard groupId={groupId} onBack={() => setGroupId(undefined)} />
-      ) : view === "create" ? (
-        <CreateGroup
-          onDone={id => {
-            setView("home");
-            if (id !== undefined) setGroupId(id);
-          }}
-          onCancel={() => setView("home")}
-        />
-      ) : (
-        <HomePanel onCreate={() => setView("create")} onOpen={setGroupId} />
-      )}
-    </main>
+    <>
+      <main className="mx-auto max-w-3xl px-5 pb-16 pt-28 sm:px-6">
+        {groupId !== undefined ? (
+          <GroupDashboard groupId={groupId} onBack={() => setGroupId(undefined)} />
+        ) : view === "create" ? (
+          <CreateGroup
+            onDone={id => {
+              setView("home");
+              if (id !== undefined) setGroupId(id);
+            }}
+            onCancel={() => setView("home")}
+          />
+        ) : (
+          <HomePanel onCreate={() => setView("create")} onOpen={setGroupId} />
+        )}
+      </main>
+      <HelpFab onClick={currentTour} />
+    </>
+  );
+}
+
+// Persistent help button — always visible in the app, walks you through the
+// screen you're currently on.
+function HelpFab({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      data-tour="help-fab"
+      onClick={onClick}
+      aria-label="Guide me through this screen"
+      className="ajo-btn ajo-btn-gold fixed bottom-5 right-5 z-30 !gap-2 !px-4 shadow-[0_16px_40px_-12px_rgba(232,176,46,0.65)]"
+    >
+      <span className="grid h-5 w-5 place-items-center rounded-full bg-black/15 text-sm font-black">?</span>
+      Guide me
+    </button>
   );
 }
 
@@ -284,6 +298,10 @@ function HomePanel({ onCreate, onOpen }: { onCreate: () => void; onOpen: (id: bi
   const count = (groupCount as bigint | undefined) ?? 0n;
   const [openId, setOpenId] = useState("");
 
+  useEffect(() => {
+    if (ajo?.address) runHomeTourOnce();
+  }, [ajo?.address]);
+
   if (!ajo?.address) {
     return (
       <div className="ajo-card ajo-rise p-6 text-[var(--ajo-muted)]">
@@ -310,7 +328,11 @@ function HomePanel({ onCreate, onOpen }: { onCreate: () => void; onOpen: (id: bi
       </div>
 
       {/* Primary: create */}
-      <div className="ajo-card ajo-card-active ajo-rise overflow-hidden" style={{ animationDelay: "60ms" }}>
+      <div
+        data-tour="home-create"
+        className="ajo-card ajo-card-active ajo-rise overflow-hidden"
+        style={{ animationDelay: "60ms" }}
+      >
         <div className="grid items-center gap-6 p-6 sm:grid-cols-[1fr_auto] sm:p-8">
           <div>
             <h2 className="text-2xl font-bold tracking-tight text-[var(--ajo-ink)]">Start a savings circle</h2>
@@ -329,7 +351,7 @@ function HomePanel({ onCreate, onOpen }: { onCreate: () => void; onOpen: (id: bi
       </div>
 
       {/* Open existing */}
-      <div className="ajo-card ajo-rise p-6 sm:p-7" style={{ animationDelay: "120ms" }}>
+      <div data-tour="home-open" className="ajo-card ajo-rise p-6 sm:p-7" style={{ animationDelay: "120ms" }}>
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold text-[var(--ajo-ink)]">Open a circle</h3>
           <span className="ajo-mono text-xs text-[var(--ajo-faint)]">{count.toString()} on Sepolia</span>
@@ -440,15 +462,12 @@ function CreateGroup({ onDone, onCancel }: { onDone: (id?: bigint) => void; onCa
 
   return (
     <div className="ajo-card ajo-rise p-6 sm:p-7">
-      <div className="mb-5 flex items-center justify-between">
-        <button
-          className="ajo-mono text-xs text-[var(--ajo-faint)] transition hover:text-[var(--ajo-gold)]"
-          onClick={onCancel}
-        >
-          ← back
-        </button>
-        <TourButton onClick={startCreateTour} />
-      </div>
+      <button
+        className="ajo-mono mb-5 text-xs text-[var(--ajo-faint)] transition hover:text-[var(--ajo-gold)]"
+        onClick={onCancel}
+      >
+        ← back
+      </button>
       <h2 className="text-2xl font-bold tracking-tight text-[var(--ajo-ink)]">New circle</h2>
       <div className="mt-6 space-y-5">
         <Field
@@ -541,15 +560,12 @@ function GroupDashboard({ groupId, onBack }: { groupId: bigint; onBack: () => vo
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between">
-        <button
-          className="ajo-mono text-xs text-[var(--ajo-faint)] transition hover:text-[var(--ajo-gold)]"
-          onClick={onBack}
-        >
-          ← all circles
-        </button>
-        <TourButton onClick={startDashboardTour} />
-      </div>
+      <button
+        className="ajo-mono text-xs text-[var(--ajo-faint)] transition hover:text-[var(--ajo-gold)]"
+        onClick={onBack}
+      >
+        ← all circles
+      </button>
 
       {/* Header */}
       <div data-tour="overview" className={`ajo-card ajo-rise p-6 ${g.active ? "ajo-card-active" : ""}`}>
