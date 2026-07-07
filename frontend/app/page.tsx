@@ -5,6 +5,7 @@ import { useAccount, useChainId, useReadContract } from "wagmi";
 import { RainbowKitCustomConnectButton } from "~~/components/helper/RainbowKitCustomConnectButton";
 import { ConfidentialAjo } from "~~/contracts/ConfidentialAjo";
 import { useAjo } from "~~/hooks/useAjo";
+import { useCircleName } from "~~/utils/circleNames";
 import { deploymentFor } from "~~/utils/contract";
 import {
   runCreateTourOnce,
@@ -371,13 +372,7 @@ function HomePanel({ onCreate, onOpen }: { onCreate: () => void; onOpen: (id: bi
         {count > 0n ? (
           <div className="mt-5 flex flex-wrap gap-2">
             {Array.from({ length: Number(count) }, (_, i) => (
-              <button
-                key={i}
-                className="ajo-mono rounded-full border border-[var(--ajo-line-strong)] px-3 py-1.5 text-sm text-[var(--ajo-muted)] transition hover:border-[var(--ajo-gold-line)] hover:bg-[var(--ajo-gold-soft)] hover:text-[var(--ajo-gold-bright)]"
-                onClick={() => onOpen(BigInt(i))}
-              >
-                Circle #{i}
-              </button>
+              <CircleChip key={i} id={BigInt(i)} onOpen={onOpen} />
             ))}
           </div>
         ) : (
@@ -432,6 +427,82 @@ function RotationRing({ size = 148 }: { size?: number }) {
         );
       })}
     </svg>
+  );
+}
+
+// A circle button in the "open" list — shows the local nickname if one is set.
+function CircleChip({ id, onOpen }: { id: bigint; onOpen: (id: bigint) => void }) {
+  const [name] = useCircleName(id);
+  return (
+    <button
+      className="ajo-mono rounded-full border border-[var(--ajo-line-strong)] px-3 py-1.5 text-sm text-[var(--ajo-muted)] transition hover:border-[var(--ajo-gold-line)] hover:bg-[var(--ajo-gold-soft)] hover:text-[var(--ajo-gold-bright)]"
+      onClick={() => onOpen(id)}
+    >
+      {name ? `${name} · #${id}` : `Circle #${id}`}
+    </button>
+  );
+}
+
+// Editable circle title — nickname stored locally in the browser.
+function CircleTitle({ groupId }: { groupId: bigint }) {
+  const [name, save] = useCircleName(groupId);
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState("");
+
+  if (editing) {
+    const commit = () => {
+      save(draft);
+      setEditing(false);
+    };
+    return (
+      <div className="flex items-center gap-2">
+        <input
+          autoFocus
+          className="ajo-input max-w-[190px] !py-1.5 text-base"
+          placeholder={`Circle #${groupId}`}
+          value={draft}
+          maxLength={40}
+          onChange={e => setDraft(e.target.value)}
+          onKeyDown={e => {
+            if (e.key === "Enter") commit();
+            if (e.key === "Escape") setEditing(false);
+          }}
+        />
+        <button className="ajo-mono text-xs text-[var(--ajo-gold-bright)]" onClick={commit}>
+          save
+        </button>
+        <button className="ajo-mono text-xs text-[var(--ajo-faint)]" onClick={() => setEditing(false)}>
+          cancel
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-2">
+      <h2 className="text-2xl font-bold tracking-tight text-[var(--ajo-ink)]">
+        {name ? (
+          <>
+            {name} <span className="ajo-mono text-base text-[var(--ajo-faint)]">#{groupId.toString()}</span>
+          </>
+        ) : (
+          <>
+            Circle <span className="ajo-mono text-[var(--ajo-gold-bright)]">#{groupId.toString()}</span>
+          </>
+        )}
+      </h2>
+      <button
+        aria-label="Rename this circle"
+        title="Rename (saved on this device only)"
+        className="ajo-mono text-xs text-[var(--ajo-faint)] transition hover:text-[var(--ajo-gold)]"
+        onClick={() => {
+          setDraft(name);
+          setEditing(true);
+        }}
+      >
+        ✎ rename
+      </button>
+    </div>
   );
 }
 
@@ -628,11 +699,9 @@ function GroupDashboard({ groupId, onBack }: { groupId: bigint; onBack: () => vo
 
       {/* Header */}
       <div data-tour="overview" className={`ajo-card ajo-rise p-6 ${g.active ? "ajo-card-active" : ""}`}>
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold tracking-tight text-[var(--ajo-ink)]">
-            Circle <span className="ajo-mono text-[var(--ajo-gold-bright)]">#{groupId.toString()}</span>
-          </h2>
-          <span className={`ajo-chip ${g.active ? "ajo-chip-gold" : ""}`}>
+        <div className="flex items-center justify-between gap-3">
+          <CircleTitle groupId={groupId} />
+          <span className={`ajo-chip shrink-0 ${g.active ? "ajo-chip-gold" : ""}`}>
             <span
               className={`h-1.5 w-1.5 rounded-full ${g.active ? "bg-[var(--ajo-gold-bright)]" : "bg-[var(--ajo-faint)]"}`}
             />
