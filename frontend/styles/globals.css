@@ -331,3 +331,79 @@ body {
     animation: none !important;
   }
 }
+
+/* ---- Walkthrough tour (driver.js) themed charcoal + gold ---- */
+.driver-popover.ajo-tour {
+  background: var(--ajo-surface);
+  color: var(--ajo-ink);
+  border: 1px solid var(--ajo-gold-line);
+  border-radius: 16px;
+  box-shadow: 0 30px 70px -30px rgba(0, 0, 0, 0.9);
+  max-width: 320px;
+}
+.driver-popover.ajo-tour .driver-popover-title {
+  font-family: "Telegraf", ui-sans-serif, system-ui, sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--ajo-gold-bright);
+}
+.driver-popover.ajo-tour .driver-popover-description {
+  color: var(--ajo-muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+.driver-popover.ajo-tour .driver-popover-description b {
+  color: var(--ajo-ink);
+  font-weight: 600;
+}
+.driver-popover.ajo-tour .driver-popover-progress-text {
+  color: var(--ajo-faint);
+  font-family: var(--ajo-mono);
+  font-size: 0.72rem;
+}
+.driver-popover.ajo-tour .driver-popover-close-btn {
+  color: var(--ajo-faint);
+}
+.driver-popover.ajo-tour .driver-popover-close-btn:hover {
+  color: var(--ajo-ink);
+}
+.driver-popover.ajo-tour button.driver-popover-next-btn,
+.driver-popover.ajo-tour button.driver-popover-prev-btn {
+  all: unset;
+  cursor: pointer;
+  border-radius: 999px;
+  padding: 0.38rem 0.9rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  transition:
+    background 150ms,
+    color 150ms,
+    border-color 150ms;
+}
+.driver-popover.ajo-tour button.driver-popover-next-btn {
+  background: var(--ajo-gold);
+  color: #171310;
+}
+.driver-popover.ajo-tour button.driver-popover-next-btn:hover {
+  background: var(--ajo-gold-bright);
+}
+.driver-popover.ajo-tour button.driver-popover-prev-btn {
+  border: 1px solid var(--ajo-line-strong);
+  color: var(--ajo-muted);
+}
+.driver-popover.ajo-tour button.driver-popover-prev-btn:hover {
+  border-color: var(--ajo-gold-line);
+  color: var(--ajo-gold-bright);
+}
+.driver-popover.ajo-tour .driver-popover-arrow-side-left.driver-popover-arrow {
+  border-left-color: var(--ajo-surface);
+}
+.driver-popover.ajo-tour .driver-popover-arrow-side-right.driver-popover-arrow {
+  border-right-color: var(--ajo-surface);
+}
+.driver-popover.ajo-tour .driver-popover-arrow-side-top.driver-popover-arrow {
+  border-top-color: var(--ajo-surface);
+}
+.driver-popover.ajo-tour .driver-popover-arrow-side-bottom.driver-popover-arrow {
+  border-bottom-color: var(--ajo-surface);
+}

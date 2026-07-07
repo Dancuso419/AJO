@@ -1,4 +1,5 @@
 import "@rainbow-me/rainbowkit/styles.css";
+import "driver.js/dist/driver.css";
 import { DappWrapperWithProviders } from "~~/components/DappWrapperWithProviders";
 import { ThemeProvider } from "~~/components/ThemeProvider";
 import "~~/styles/globals.css";

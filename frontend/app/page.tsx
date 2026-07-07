@@ -6,6 +6,21 @@ import { RainbowKitCustomConnectButton } from "~~/components/helper/RainbowKitCu
 import { ConfidentialAjo } from "~~/contracts/ConfidentialAjo";
 import { useAjo } from "~~/hooks/useAjo";
 import { deploymentFor } from "~~/utils/contract";
+import { runCreateTourOnce, runDashboardTourOnce, startCreateTour, startDashboardTour } from "~~/utils/tour";
+
+function TourButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      className="ajo-mono inline-flex items-center gap-1.5 rounded-full border border-[var(--ajo-line-strong)] px-3 py-1.5 text-xs text-[var(--ajo-muted)] transition hover:border-[var(--ajo-gold-line)] hover:text-[var(--ajo-gold-bright)]"
+      onClick={onClick}
+    >
+      <span className="grid h-4 w-4 place-items-center rounded-full bg-[var(--ajo-gold-soft)] text-[10px] font-bold text-[var(--ajo-gold-bright)]">
+        ?
+      </span>
+      Guide me
+    </button>
+  );
+}
 
 function short(a?: string) {
   return a ? `${a.slice(0, 6)}…${a.slice(-4)}` : "";
@@ -406,6 +421,10 @@ function CreateGroup({ onDone, onCancel }: { onDone: (id?: bigint) => void; onCa
   const [duration, setDuration] = useState("3600");
   const [addresses, setAddresses] = useState("");
 
+  useEffect(() => {
+    runCreateTourOnce();
+  }, []);
+
   const order = addresses
     .split(/[\s,]+/)
     .map(s => s.trim())
@@ -421,15 +440,19 @@ function CreateGroup({ onDone, onCancel }: { onDone: (id?: bigint) => void; onCa
 
   return (
     <div className="ajo-card ajo-rise p-6 sm:p-7">
-      <button
-        className="ajo-mono mb-5 text-xs text-[var(--ajo-faint)] transition hover:text-[var(--ajo-gold)]"
-        onClick={onCancel}
-      >
-        ← back
-      </button>
+      <div className="mb-5 flex items-center justify-between">
+        <button
+          className="ajo-mono text-xs text-[var(--ajo-faint)] transition hover:text-[var(--ajo-gold)]"
+          onClick={onCancel}
+        >
+          ← back
+        </button>
+        <TourButton onClick={startCreateTour} />
+      </div>
       <h2 className="text-2xl font-bold tracking-tight text-[var(--ajo-ink)]">New circle</h2>
       <div className="mt-6 space-y-5">
         <Field
+          tour="members"
           label="Members & payout order"
           hint="One address per line, in the order they receive the pot. Minimum 2."
         >
@@ -441,14 +464,14 @@ function CreateGroup({ onDone, onCancel }: { onDone: (id?: bigint) => void; onCa
           />
         </Field>
         <div className="grid grid-cols-2 gap-4">
-          <Field label="Stake per round" hint="in AJOT">
+          <Field tour="stake" label="Stake per round" hint="in AJOT">
             <input
               className="ajo-input ajo-mono"
               value={amount}
               onChange={e => setAmount(e.target.value.replace(/\D/g, ""))}
             />
           </Field>
-          <Field label="Round length" hint="in seconds">
+          <Field tour="duration" label="Round length" hint="in seconds">
             <input
               className="ajo-input ajo-mono"
               value={duration}
@@ -456,7 +479,12 @@ function CreateGroup({ onDone, onCancel }: { onDone: (id?: bigint) => void; onCa
             />
           </Field>
         </div>
-        <button className="ajo-btn ajo-btn-gold w-full" disabled={!valid || ajo.busy} onClick={submit}>
+        <button
+          data-tour="create-submit"
+          className="ajo-btn ajo-btn-gold w-full"
+          disabled={!valid || ajo.busy}
+          onClick={submit}
+        >
           {ajo.busy
             ? "Creating…"
             : valid
@@ -469,9 +497,19 @@ function CreateGroup({ onDone, onCancel }: { onDone: (id?: bigint) => void; onCa
   );
 }
 
-function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
+function Field({
+  label,
+  hint,
+  tour,
+  children,
+}: {
+  label: string;
+  hint?: string;
+  tour?: string;
+  children: React.ReactNode;
+}) {
   return (
-    <label className="block">
+    <label className="block" data-tour={tour}>
       <span className="text-sm font-medium text-[var(--ajo-ink)]">{label}</span>
       {hint && <span className="ml-2 text-xs text-[var(--ajo-faint)]">{hint}</span>}
       <div className="mt-2">{children}</div>
@@ -484,6 +522,11 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
 function GroupDashboard({ groupId, onBack }: { groupId: bigint; onBack: () => void }) {
   const a = useAjo(groupId);
   const g = a.group;
+  const ready = !!g && a.onSupportedNetwork;
+
+  useEffect(() => {
+    if (ready) runDashboardTourOnce();
+  }, [ready]);
 
   if (!a.onSupportedNetwork)
     return <div className="ajo-card p-6 text-[var(--ajo-muted)]">Switch to Sepolia to view this circle.</div>;
@@ -498,15 +541,18 @@ function GroupDashboard({ groupId, onBack }: { groupId: bigint; onBack: () => vo
 
   return (
     <div className="space-y-5">
-      <button
-        className="ajo-mono text-xs text-[var(--ajo-faint)] transition hover:text-[var(--ajo-gold)]"
-        onClick={onBack}
-      >
-        ← all circles
-      </button>
+      <div className="flex items-center justify-between">
+        <button
+          className="ajo-mono text-xs text-[var(--ajo-faint)] transition hover:text-[var(--ajo-gold)]"
+          onClick={onBack}
+        >
+          ← all circles
+        </button>
+        <TourButton onClick={startDashboardTour} />
+      </div>
 
       {/* Header */}
-      <div className={`ajo-card ajo-rise p-6 ${g.active ? "ajo-card-active" : ""}`}>
+      <div data-tour="overview" className={`ajo-card ajo-rise p-6 ${g.active ? "ajo-card-active" : ""}`}>
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-bold tracking-tight text-[var(--ajo-ink)]">
             Circle <span className="ajo-mono text-[var(--ajo-gold-bright)]">#{groupId.toString()}</span>
@@ -537,7 +583,7 @@ function GroupDashboard({ groupId, onBack }: { groupId: bigint; onBack: () => vo
       </div>
 
       {/* Rotation track */}
-      <div className="ajo-card ajo-rise p-6" style={{ animationDelay: "60ms" }}>
+      <div data-tour="rotation" className="ajo-card ajo-rise p-6" style={{ animationDelay: "60ms" }}>
         <div className="ajo-mono mb-4 text-xs uppercase tracking-[0.2em] text-[var(--ajo-faint)]">The rotation</div>
         <div className="flex items-start gap-1 overflow-x-auto pb-1">
           {a.payoutOrder.map((m, i) => (
@@ -556,7 +602,7 @@ function GroupDashboard({ groupId, onBack }: { groupId: bigint; onBack: () => vo
       </div>
 
       {/* Private history — the money shot */}
-      <div className="ajo-card ajo-rise p-6" style={{ animationDelay: "120ms" }}>
+      <div data-tour="ledger" className="ajo-card ajo-rise p-6" style={{ animationDelay: "120ms" }}>
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold text-[var(--ajo-ink)]">Your private ledger</h3>
           <span className="ajo-mono text-xs text-[var(--ajo-faint)]">encrypted · only you hold the key</span>
@@ -566,6 +612,7 @@ function GroupDashboard({ groupId, onBack }: { groupId: bigint; onBack: () => vo
           <CipherStat title="Received" value={a.decryptedPayout} revealed={a.isRevealed} />
         </div>
         <button
+          data-tour="reveal"
           className={`ajo-btn mt-5 ${a.isRevealed ? "ajo-btn-ghost" : "ajo-btn-gold"}`}
           disabled={a.isRevealing}
           onClick={a.revealMyHistory}
@@ -575,7 +622,7 @@ function GroupDashboard({ groupId, onBack }: { groupId: bigint; onBack: () => vo
       </div>
 
       {/* Actions */}
-      <div className="ajo-card ajo-rise p-6" style={{ animationDelay: "180ms" }}>
+      <div data-tour="actions" className="ajo-card ajo-rise p-6" style={{ animationDelay: "180ms" }}>
         <h3 className="text-lg font-semibold text-[var(--ajo-ink)]">Actions</h3>
         <div className="mt-4 flex flex-wrap gap-3">
           {g.currentRound === 0n && iAmMember && (
