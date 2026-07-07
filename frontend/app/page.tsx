@@ -438,19 +438,24 @@ function RotationRing({ size = 148 }: { size?: number }) {
 /* ------------------------------------------------------------ Create form */
 
 function CreateGroup({ onDone, onCancel }: { onDone: (id?: bigint) => void; onCancel: () => void }) {
+  const { address } = useAccount();
   const ajo = useAjo(undefined);
   const [amount, setAmount] = useState("100");
   const [duration, setDuration] = useState("3600");
   const [addresses, setAddresses] = useState("");
+  const [includeMe, setIncludeMe] = useState(true);
 
   useEffect(() => {
     runCreateTourOnce();
   }, []);
 
-  const order = addresses
+  const typed = addresses
     .split(/[\s,]+/)
     .map(s => s.trim())
     .filter(Boolean) as `0x${string}`[];
+  // Optionally put the connected wallet first in the payout order, unless it's already listed.
+  const meIncluded = includeMe && address && !typed.some(a => eq(a, address));
+  const order = (meIncluded ? [address as `0x${string}`, ...typed] : typed) as `0x${string}`[];
   const valid =
     order.length >= 2 && order.every(a => /^0x[0-9a-fA-F]{40}$/.test(a)) && amount !== "" && duration !== "";
 
@@ -481,6 +486,16 @@ function CreateGroup({ onDone, onCancel }: { onDone: (id?: bigint) => void; onCa
             value={addresses}
             onChange={e => setAddresses(e.target.value)}
           />
+          <label className="mt-3 flex cursor-pointer items-center gap-2.5 text-sm text-[var(--ajo-muted)]">
+            <input
+              type="checkbox"
+              checked={includeMe}
+              onChange={e => setIncludeMe(e.target.checked)}
+              className="h-4 w-4 accent-[var(--ajo-gold)]"
+            />
+            Include my wallet as a member
+            {meIncluded && <span className="ajo-mono text-xs text-[var(--ajo-gold)]">(added first · {short(address)})</span>}
+          </label>
         </Field>
         <div className="grid grid-cols-2 gap-4">
           <Field tour="stake" label="Stake per round" hint="in AJOT">
@@ -557,6 +572,7 @@ function GroupDashboard({ groupId, onBack }: { groupId: bigint; onBack: () => vo
   const myTurn = eq(recipient, a.address);
   const iAmMember = a.payoutOrder.some(x => eq(x, a.address));
   const status = g.active ? "ACTIVE" : g.currentRound === 0n ? "FILLING" : "COMPLETE";
+  const filling = status === "FILLING";
 
   return (
     <div className="space-y-5">
@@ -566,6 +582,49 @@ function GroupDashboard({ groupId, onBack }: { groupId: bigint; onBack: () => vo
       >
         ← all circles
       </button>
+
+      {/* Filling banner — the circle can't be contributed to until everyone joins */}
+      {filling && (
+        <div className="ajo-card ajo-card-active ajo-rise p-6">
+          <div className="flex items-center justify-between gap-3">
+            <h3 className="text-lg font-semibold text-[var(--ajo-ink)]">Waiting for members to join</h3>
+            <span className="ajo-mono text-sm text-[var(--ajo-gold-bright)]">
+              {a.joinedCount.toString()} of {g.memberCount.toString()} joined
+            </span>
+          </div>
+          {/* progress bar */}
+          <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-[var(--ajo-surface-2)]">
+            <div
+              className="h-full rounded-full bg-[var(--ajo-gold)] transition-all duration-500"
+              style={{ width: `${(Number(a.joinedCount) / Math.max(1, Number(g.memberCount))) * 100}%` }}
+            />
+          </div>
+          <div className="mt-4">
+            {!iAmMember ? (
+              <p className="text-sm leading-relaxed text-[var(--ajo-muted)]">
+                This wallet isn’t one of the circle’s members, so it can’t join or contribute. Each address in the
+                payout order must open this circle and tap <b className="text-[var(--ajo-ink)]">Join</b>. Contributions
+                open once everyone has joined.
+              </p>
+            ) : a.iHaveJoined ? (
+              <p className="text-sm leading-relaxed text-[var(--ajo-muted)]">
+                <span className="text-[var(--ajo-gold-bright)]">✓ You’ve joined.</span> Waiting for the remaining
+                members to join from their own wallets — then contributions open for everyone.
+              </p>
+            ) : (
+              <div className="flex flex-wrap items-center gap-3">
+                <button className="ajo-btn ajo-btn-gold" disabled={a.busy} onClick={a.joinGroup}>
+                  Join this circle
+                </button>
+                <span className="text-sm text-[var(--ajo-muted)]">
+                  You’re invited — join to take your place in the rotation.
+                </span>
+              </div>
+            )}
+          </div>
+          {a.message && <StatusLine text={a.message} />}
+        </div>
+      )}
 
       {/* Header */}
       <div data-tour="overview" className={`ajo-card ajo-rise p-6 ${g.active ? "ajo-card-active" : ""}`}>
@@ -641,11 +700,6 @@ function GroupDashboard({ groupId, onBack }: { groupId: bigint; onBack: () => vo
       <div data-tour="actions" className="ajo-card ajo-rise p-6" style={{ animationDelay: "180ms" }}>
         <h3 className="text-lg font-semibold text-[var(--ajo-ink)]">Actions</h3>
         <div className="mt-4 flex flex-wrap gap-3">
-          {g.currentRound === 0n && iAmMember && (
-            <button className="ajo-btn ajo-btn-gold" disabled={a.busy} onClick={a.joinGroup}>
-              Join this circle
-            </button>
-          )}
           <button className="ajo-btn ajo-btn-ghost" disabled={a.busy} onClick={() => a.mintTestTokens(1000n)}>
             Mint 1000 AJOT
           </button>
@@ -659,7 +713,9 @@ function GroupDashboard({ groupId, onBack }: { groupId: bigint; onBack: () => vo
           )}
         </div>
         <p className="ajo-mono mt-4 text-xs leading-relaxed text-[var(--ajo-faint)]">
-          first time → mint · approve once · then contribute each round
+          {filling
+            ? "circle is still filling — contributions open once every member has joined (see above)"
+            : "first time → mint · approve once · then contribute each round"}
         </p>
         {a.message && <StatusLine text={a.message} />}
       </div>

@@ -66,6 +66,24 @@ export const useAjo = (groupId: bigint | undefined) => {
     query: { enabled: Boolean(ajoAddr && isConnected && hasGroup) },
   });
 
+  // How many invited members have actually joined (drives the "FILLING" progress).
+  const joinedCountQ = useReadContract({
+    address: ajoAddr,
+    abi: ajo?.abi,
+    functionName: "memberCountJoined",
+    args: hasGroup ? [groupId!] : undefined,
+    query: { enabled: Boolean(ajoAddr && isConnected && hasGroup) },
+  });
+
+  // Has the connected wallet already joined this group?
+  const iJoinedQ = useReadContract({
+    address: ajoAddr,
+    abi: ajo?.abi,
+    functionName: "isMember",
+    args: hasGroup && address ? [groupId!, address] : undefined,
+    query: { enabled: Boolean(ajoAddr && isConnected && hasGroup && address) },
+  });
+
   const group: GroupInfo | undefined = useMemo(() => {
     const d = groupQ.data as readonly unknown[] | undefined;
     if (!d) return undefined;
@@ -86,7 +104,9 @@ export const useAjo = (groupId: bigint | undefined) => {
     groupCountQ.refetch();
     groupQ.refetch();
     payoutOrderQ.refetch();
-  }, [groupCountQ, groupQ, payoutOrderQ]);
+    joinedCountQ.refetch();
+    iJoinedQ.refetch();
+  }, [groupCountQ, groupQ, payoutOrderQ, joinedCountQ, iJoinedQ]);
 
   // ---- Encrypted history + decryption -----------------------------------
 
@@ -251,6 +271,8 @@ export const useAjo = (groupId: bigint | undefined) => {
     groupCount: (groupCountQ.data as bigint | undefined) ?? 0n,
     group,
     payoutOrder,
+    joinedCount: (joinedCountQ.data as bigint | undefined) ?? 0n,
+    iHaveJoined: Boolean(iJoinedQ.data),
     refresh,
     // history / decryption
     contribHandle,
