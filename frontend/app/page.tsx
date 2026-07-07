@@ -47,10 +47,10 @@ function Landing() {
       {/* Hero */}
       <section className="relative flex min-h-[92vh] flex-col justify-center overflow-hidden py-24">
         <CipherBanner />
-        <p className="ajo-mono mb-6 text-xs tracking-[0.3em] text-[var(--ajo-gold)]">
+        <p className="ajo-mono mb-6 max-w-full truncate text-[11px] tracking-[0.25em] text-[var(--ajo-gold)] sm:text-xs sm:tracking-[0.3em]">
           ESUSU · SUSU · CHAMA · TANDA · HUI · PALUWAGAN
         </p>
-        <h1 className="max-w-3xl text-balance text-5xl font-bold leading-[0.98] tracking-tight text-[var(--ajo-ink)] sm:text-7xl">
+        <h1 className="max-w-3xl text-balance text-[2rem] font-bold leading-[1.02] tracking-tight text-[var(--ajo-ink)] sm:text-6xl sm:leading-[0.98] md:text-7xl">
           The savings circle, <span className="text-[var(--ajo-gold-bright)]">sealed by cryptography.</span>
         </h1>
         <p className="mt-7 max-w-xl text-lg leading-relaxed text-[var(--ajo-muted)]">
@@ -257,7 +257,7 @@ function CipherBanner() {
 /* ------------------------------------------------------------------- Home */
 
 function HomePanel({ onCreate, onOpen }: { onCreate: () => void; onOpen: (id: bigint) => void }) {
-  const { isConnected } = useAccount();
+  const { address, isConnected } = useAccount();
   const chainId = useChainId();
   const ajo = deploymentFor(ConfidentialAjo, chainId);
   const { data: groupCount } = useReadContract({
@@ -272,65 +272,129 @@ function HomePanel({ onCreate, onOpen }: { onCreate: () => void; onOpen: (id: bi
   if (!ajo?.address) {
     return (
       <div className="ajo-card ajo-rise p-6 text-[var(--ajo-muted)]">
-        Switch your wallet to the <b className="text-[var(--ajo-ink)]">Sepolia</b> network to use AJO.
+        You’re connected, but not on the right network. Switch your wallet to{" "}
+        <b className="text-[var(--ajo-gold-bright)]">Ethereum Sepolia</b> to use AJO.
       </div>
     );
   }
 
   return (
-    <div className="space-y-5">
-      <div className="ajo-rise flex items-end justify-between" style={{ animationDelay: "0ms" }}>
+    <div className="space-y-6">
+      {/* Welcome */}
+      <div className="ajo-rise flex flex-wrap items-center justify-between gap-3">
         <div>
-          <div className="ajo-mono text-xs uppercase tracking-[0.2em] text-[var(--ajo-faint)]">Live on Sepolia</div>
-          <div className="mt-1 flex items-baseline gap-3">
-            <span className="ajo-mono text-6xl font-bold leading-none text-[var(--ajo-gold-bright)]">
-              {count.toString()}
-            </span>
-            <span className="text-[var(--ajo-muted)]">{count === 1n ? "circle" : "circles"} running</span>
-          </div>
+          <h1 className="text-3xl font-bold tracking-tight text-[var(--ajo-ink)] sm:text-4xl">Your circles</h1>
+          <p className="mt-1 text-[var(--ajo-muted)]">Start a new savings circle, or open one you’re part of.</p>
         </div>
+        {address && (
+          <span className="ajo-chip">
+            <span className="h-1.5 w-1.5 rounded-full bg-[var(--ajo-gold-bright)]" />
+            {short(address)}
+          </span>
+        )}
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-[1.1fr_1fr]">
-        <div className="ajo-card ajo-rise p-6" style={{ animationDelay: "60ms" }}>
-          <h3 className="text-lg font-semibold text-[var(--ajo-ink)]">Start a circle</h3>
-          <p className="mt-1 text-sm leading-relaxed text-[var(--ajo-muted)]">
-            Invite members by address, set the stake and rotation. The contract handles the rest.
-          </p>
-          <button className="ajo-btn ajo-btn-gold mt-5" onClick={onCreate}>
-            Create a circle →
-          </button>
-        </div>
-
-        <div className="ajo-card ajo-rise p-6" style={{ animationDelay: "120ms" }}>
-          <h3 className="text-lg font-semibold text-[var(--ajo-ink)]">Open a circle</h3>
-          <div className="mt-4 flex gap-2">
-            <input
-              className="ajo-input ajo-mono"
-              placeholder="circle #"
-              value={openId}
-              onChange={e => setOpenId(e.target.value.replace(/\D/g, ""))}
-            />
-            <button className="ajo-btn ajo-btn-ghost" disabled={openId === ""} onClick={() => onOpen(BigInt(openId))}>
-              Open
+      {/* Primary: create */}
+      <div className="ajo-card ajo-card-active ajo-rise overflow-hidden" style={{ animationDelay: "60ms" }}>
+        <div className="grid items-center gap-6 p-6 sm:grid-cols-[1fr_auto] sm:p-8">
+          <div>
+            <h2 className="text-2xl font-bold tracking-tight text-[var(--ajo-ink)]">Start a savings circle</h2>
+            <p className="mt-3 max-w-md leading-relaxed text-[var(--ajo-muted)]">
+              Invite members by wallet address and set the stake. Contributions are encrypted, and the pot rotates to
+              each member automatically — no collector, nothing exposed.
+            </p>
+            <button className="ajo-btn ajo-btn-gold mt-6" onClick={onCreate}>
+              Create a circle →
             </button>
           </div>
-          {count > 0n && (
-            <div className="mt-4 flex flex-wrap gap-2">
-              {Array.from({ length: Number(count) }, (_, i) => (
-                <button
-                  key={i}
-                  className="ajo-mono rounded-lg border border-[var(--ajo-line-strong)] px-2.5 py-1 text-xs text-[var(--ajo-muted)] transition hover:border-[var(--ajo-gold-line)] hover:text-[var(--ajo-gold-bright)]"
-                  onClick={() => onOpen(BigInt(i))}
-                >
-                  #{i}
-                </button>
-              ))}
-            </div>
-          )}
+          <div className="hidden justify-self-center sm:block">
+            <RotationRing />
+          </div>
         </div>
       </div>
+
+      {/* Open existing */}
+      <div className="ajo-card ajo-rise p-6 sm:p-7" style={{ animationDelay: "120ms" }}>
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-[var(--ajo-ink)]">Open a circle</h3>
+          <span className="ajo-mono text-xs text-[var(--ajo-faint)]">{count.toString()} on Sepolia</span>
+        </div>
+        <div className="mt-4 flex max-w-xs gap-2">
+          <input
+            className="ajo-input ajo-mono"
+            inputMode="numeric"
+            placeholder="circle #"
+            value={openId}
+            onChange={e => setOpenId(e.target.value.replace(/\D/g, ""))}
+          />
+          <button className="ajo-btn ajo-btn-ghost" disabled={openId === ""} onClick={() => onOpen(BigInt(openId))}>
+            Open
+          </button>
+        </div>
+        {count > 0n ? (
+          <div className="mt-5 flex flex-wrap gap-2">
+            {Array.from({ length: Number(count) }, (_, i) => (
+              <button
+                key={i}
+                className="ajo-mono rounded-full border border-[var(--ajo-line-strong)] px-3 py-1.5 text-sm text-[var(--ajo-muted)] transition hover:border-[var(--ajo-gold-line)] hover:bg-[var(--ajo-gold-soft)] hover:text-[var(--ajo-gold-bright)]"
+                onClick={() => onOpen(BigInt(i))}
+              >
+                Circle #{i}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <p className="mt-4 text-sm text-[var(--ajo-faint)]">No circles yet — be the first to start one.</p>
+        )}
+      </div>
+
+      {/* First-timer hint */}
+      <p className="ajo-mono px-1 text-xs leading-relaxed text-[var(--ajo-faint)]">
+        new here? inside a circle you’ll <span className="text-[var(--ajo-muted)]">mint</span> test AJOT ·{" "}
+        <span className="text-[var(--ajo-muted)]">approve</span> AJO once ·{" "}
+        <span className="text-[var(--ajo-muted)]">contribute</span> each round · then{" "}
+        <span className="text-[var(--ajo-gold)]">decrypt</span> your private ledger.
+      </p>
     </div>
+  );
+}
+
+// Signature visual: members arranged in a ring, the pot rotating between them.
+function RotationRing({ size = 148 }: { size?: number }) {
+  const dots = 6;
+  const [active, setActive] = useState(0);
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const id = setInterval(() => setActive(a => (a + 1) % dots), 950);
+    return () => clearInterval(id);
+  }, []);
+  const c = size / 2;
+  const r = c - 16;
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-hidden>
+      <circle cx={c} cy={c} r={r} fill="none" stroke="var(--ajo-line-strong)" strokeWidth={1} />
+      <circle cx={c} cy={c} r={4} fill="var(--ajo-gold)" opacity={0.5} />
+      {Array.from({ length: dots }).map((_, i) => {
+        const ang = (i / dots) * 2 * Math.PI - Math.PI / 2;
+        const x = c + r * Math.cos(ang);
+        const y = c + r * Math.sin(ang);
+        const on = i === active;
+        return (
+          <g key={i} className="ajo-node">
+            {on && <line x1={c} y1={c} x2={x} y2={y} stroke="var(--ajo-gold-line)" strokeWidth={1} />}
+            <circle
+              cx={x}
+              cy={y}
+              r={on ? 9 : 6}
+              fill={on ? "var(--ajo-gold)" : "var(--ajo-surface-2)"}
+              stroke={on ? "none" : "var(--ajo-line-strong)"}
+              strokeWidth={1}
+              style={{ transition: "all 300ms cubic-bezier(0.22,1,0.36,1)" }}
+            />
+          </g>
+        );
+      })}
+    </svg>
   );
 }
 
