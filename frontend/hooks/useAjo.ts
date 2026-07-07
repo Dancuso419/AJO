@@ -1,10 +1,11 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useAllow, useEncrypt, useIsAllowed, useUserDecrypt } from "@zama-fhe/react-sdk";
 import { ZERO_HANDLE } from "@zama-fhe/sdk";
 import { bytesToHex } from "viem";
-import { useAccount, useChainId, useReadContract, useWriteContract } from "wagmi";
+import { useAccount, useChainId, usePublicClient, useReadContract, useWriteContract } from "wagmi";
 import { AjoToken } from "~~/contracts/AjoToken";
 import { ConfidentialAjo } from "~~/contracts/ConfidentialAjo";
 import { deploymentFor } from "~~/utils/contract";
@@ -28,6 +29,8 @@ export type GroupInfo = {
 export const useAjo = (groupId: bigint | undefined) => {
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
+  const publicClient = usePublicClient();
+  const queryClient = useQueryClient();
   const ajo = useMemo(() => deploymentFor(ConfidentialAjo, chainId), [chainId]);
   const token = useMemo(() => deploymentFor(AjoToken, chainId), [chainId]);
 
@@ -170,20 +173,37 @@ export const useAjo = (groupId: bigint | undefined) => {
 
   // ---- Writes ------------------------------------------------------------
 
-  const run = useCallback(async (label: string, fn: () => Promise<unknown>) => {
-    setBusy(true);
-    setMessage(`${label}…`);
-    try {
-      await fn();
-      setMessage(`${label} — done ✓`);
-      return true;
-    } catch (e) {
-      setMessage(`${label} failed: ${e instanceof Error ? e.message.split("\n")[0] : String(e)}`);
-      return false;
-    } finally {
-      setBusy(false);
-    }
-  }, []);
+  // Wait for a write to actually be mined, then refetch every on-chain read so the
+  // whole UI (banner, rotation track, history) reflects the new state without a remount.
+  const confirmAndRefresh = useCallback(
+    async (hash: unknown) => {
+      if (typeof hash === "string" && publicClient) {
+        await publicClient.waitForTransactionReceipt({ hash: hash as `0x${string}` });
+      }
+      await queryClient.invalidateQueries();
+    },
+    [publicClient, queryClient],
+  );
+
+  const run = useCallback(
+    async (label: string, fn: () => Promise<unknown>) => {
+      setBusy(true);
+      setMessage(`${label}…`);
+      try {
+        const hash = await fn();
+        setMessage(`${label} — confirming…`);
+        await confirmAndRefresh(hash);
+        setMessage(`${label} — done ✓`);
+        return true;
+      } catch (e) {
+        setMessage(`${label} failed: ${e instanceof Error ? e.message.split("\n")[0] : String(e)}`);
+        return false;
+      } finally {
+        setBusy(false);
+      }
+    },
+    [confirmAndRefresh],
+  );
 
   const createGroup = useCallback(
     async (memberCount: bigint, contributionAmount: bigint, roundDuration: bigint, order: `0x${string}`[]) => {
@@ -244,15 +264,16 @@ export const useAjo = (groupId: bigint | undefined) => {
         userAddress: address,
       });
       setMessage("Sending contribution…");
-      await writeContractAsync({
+      const hash = await writeContractAsync({
         address: ajoAddr,
         abi: ajo!.abi,
         functionName: "contribute",
         args: [groupId!, bytesToHex(enc.handles[0]!), bytesToHex(enc.inputProof)],
         gas: FHE_GAS,
       });
+      setMessage("Confirming contribution…");
+      await confirmAndRefresh(hash);
       setMessage("Contribution sent ✓");
-      refresh();
       return true;
     } catch (e) {
       setMessage(`Contribute failed: ${e instanceof Error ? e.message.split("\n")[0] : String(e)}`);
@@ -260,7 +281,7 @@ export const useAjo = (groupId: bigint | undefined) => {
     } finally {
       setBusy(false);
     }
-  }, [ajoAddr, ajo, hasGroup, groupId, address, group, encrypt, writeContractAsync, refresh]);
+  }, [ajoAddr, ajo, hasGroup, groupId, address, group, encrypt, writeContractAsync, confirmAndRefresh]);
 
   return {
     address,
